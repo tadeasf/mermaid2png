@@ -1,10 +1,9 @@
 #!/usr/bin/env bun
 
-import { existsSync, mkdirSync, readFileSync } from 'fs';
-import { join, dirname, parse, extname } from 'path';
+import { existsSync, mkdirSync, readFileSync, readdirSync, statSync } from 'fs';
+import { join, dirname, parse, extname, resolve, basename } from 'path';
 import { launch } from 'puppeteer';
 import { createInterface } from 'readline';
-import { glob } from 'glob';
 
 // CLI arguments
 const args = process.argv.slice(2);
@@ -35,10 +34,36 @@ function extractMermaidFromMarkdown(content: string): string[] {
 }
 
 // Function to complete file paths
-async function completeFilePath(partialPath: string): Promise<string[]> {
+function completeFilePath(partialPath: string): string[] {
     try {
-        const pattern = partialPath.endsWith('/') ? `${partialPath}*` : `${partialPath}*`;
-        return await glob(pattern);
+        // Handle empty path or current directory
+        if (!partialPath || partialPath === '.') {
+            return readdirSync('.');
+        }
+
+        // Resolve the directory part of the path
+        const dir = dirname(partialPath);
+        const base = basename(partialPath);
+        const resolvedDir = dir === '.' ? process.cwd() : resolve(dir);
+
+        // Check if directory exists
+        if (!existsSync(resolvedDir)) {
+            return [];
+        }
+
+        // Get all files in the directory
+        const files = readdirSync(resolvedDir);
+
+        // Filter files that match the partial path
+        return files
+            .filter(file => file.startsWith(base))
+            .map(file => {
+                const fullPath = join(dir, file);
+                if (statSync(join(resolvedDir, file)).isDirectory()) {
+                    return `${fullPath}/`;
+                }
+                return fullPath;
+            });
     } catch (error) {
         console.error('Error completing path:', error);
         return [];
@@ -46,12 +71,12 @@ async function completeFilePath(partialPath: string): Promise<string[]> {
 }
 
 // Function to prompt with path completion
-async function promptWithPathCompletion(question: string, defaultValue: string = ''): Promise<string> {
+function promptWithPathCompletion(question: string, defaultValue: string = ''): Promise<string> {
     const rl = createInterface({
         input: process.stdin,
         output: process.stdout,
-        completer: async (line: string) => {
-            const completions = await completeFilePath(line);
+        completer: (line: string) => {
+            const completions = completeFilePath(line);
             const hits = completions.filter((c) => c.startsWith(line));
             return [hits.length ? hits : completions, line];
         }
