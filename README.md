@@ -22,7 +22,7 @@ A command-line tool to convert Mermaid diagrams to high-resolution PNG images.
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/mermaid2png.git
+git clone https://github.com/tadeasf/mermaid2png.git
 cd mermaid2png
 
 # Install dependencies
@@ -39,7 +39,7 @@ sudo ln -s "$(pwd)/src/index.ts" /usr/local/bin/mermaid2png
 
 ```bash
 # Install directly from the repository
-bun install -g github:yourusername/mermaid2png
+bun install -g github:tadeasf/mermaid2png
 
 # Or install from the local directory
 cd mermaid2png
@@ -50,7 +50,7 @@ bun run install-global
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/mermaid2png.git
+git clone https://github.com/tadeasf/mermaid2png.git
 cd mermaid2png
 
 # Install dependencies
